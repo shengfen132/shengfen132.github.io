@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>记忆翻牌 - 游戏中心</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .memory-container {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .memory-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stat-box {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+      border: 1px solid var(--glass);
+      border-radius: 8px;
+      padding: 12px 20px;
+      min-width: 80px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 24px auto;
+      max-width: 500px;
+    }
+    .memory-card {
+      aspect-ratio: 1;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+      border: 2px solid var(--glass);
+      border-radius: 12px;
+      font-size: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      transform-style: preserve-3d;
+    }
+    .memory-card:hover:not(.flipped):not(.matched) {
+      border-color: rgba(34, 197, 94, 0.3);
+      transform: scale(1.05);
+    }
+    .memory-card.flipped {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+      border-color: #22c55e;
+    }
+    .memory-card.matched {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+      border-color: #22c55e;
+      opacity: 0.6;
+      cursor: default;
+    }
+    .memory-card .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      backface-visibility: hidden;
+    }
+    .memory-card .card-front {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      backface-visibility: hidden;
+      opacity: 0;
+    }
+    .memory-card.flipped .card-back {
+      opacity: 0;
+    }
+    .memory-card.flipped .card-front,
+    .memory-card.matched .card-front {
+      opacity: 1;
+    }
+    .controls {
+      margin: 24px 0;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .game-complete-message {
+      font-size: 24px;
+      font-weight: 700;
+      color: #22c55e;
+      margin: 20px 0;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 520px) {
+      .memory-grid {
+        gap: 8px;
+      }
+      .memory-card .card-back {
+        font-size: 32px;
+      }
+      .memory-card .card-front {
+        font-size: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="memory-container">
+      <a href="index.html" class="back-link">🏠 返回游戏中心</a>
+      <h1>🃏 记忆翻牌</h1>
+      
+      <div class="memory-header">
+        <div class="stat-box">
+          <div class="stat-label">翻牌次数</div>
+          <div class="stat-value" id="moves">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">配对数</div>
+          <div class="stat-value" id="matches">0/8</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">用时</div>
+          <div class="stat-value" id="timer">0:00</div>
+        </div>
+      </div>
+      
+      <div class="memory-grid" id="memoryGrid"></div>
+      
+      <div id="completeMessage" style="display: none;" class="game-complete-message"></div>
+      
+      <div class="controls">
+        <button id="newGameBtn">新游戏</button>
+      </div>
+      
+      <p class="hint">翻开卡牌找到所有配对！记住每张卡的位置，越少翻牌次数越好。</p>
+    </div>
+  </main>
+  
+  <script>
+    class MemoryGame {
+      constructor() {
+        this.cards = ['🍎', '🍌', '🍇', '🍊', '🍓', '🍉', '🍒', '🍑'];
+        this.gameCards = [];
+        this.flippedCards = [];
+        this.matchedPairs = 0;
+        this.moves = 0;
+        this.isProcessing = false;
+        this.startTime = null;
+        this.timerInterval = null;
+        
+        this.gridElement = document.getElementById('memoryGrid');
+        this.movesElement = document.getElementById('moves');
+        this.matchesElement = document.getElementById('matches');
+        this.timerElement = document.getElementById('timer');
+        this.completeMessageElement = document.getElementById('completeMessage');
+        
+        this.init();
+      }
+      
+      init() {
+        // Create shuffled deck
+        this.gameCards = [...this.cards, ...this.cards]
+          .sort(() => Math.random() - 0.5);
+        
+        this.flippedCards = [];
+        this.matchedPairs = 0;
+        this.moves = 0;
+        this.isProcessing = false;
+        this.startTime = null;
+        
+        this.updateStats();
+        this.renderGrid();
+        this.stopTimer();
+        this.completeMessageElement.style.display = 'none';
+      }
+      
+      renderGrid() {
+        this.gridElement.innerHTML = '';
+        
+        this.gameCards.forEach((symbol, index) => {
+          const card = document.createElement('div');
+          card.className = 'memory-card';
+          card.dataset.index = index;
+          card.dataset.symbol = symbol;
+          
+          const cardBack = document.createElement('div');
+          cardBack.className = 'card-back';
+          cardBack.textContent = '🎴';
+          
+          const cardFront = document.createElement('div');
+          cardFront.className = 'card-front';
+          cardFront.textContent = symbol;
+          
+          card.appendChild(cardBack);
+          card.appendChild(cardFront);
+          card.addEventListener('click', () => this.flipCard(card));
+          
+          this.gridElement.appendChild(card);
+        });
+      }
+      
+      flipCard(card) {
+        if (this.isProcessing) return;
+        if (card.classList.contains('flipped')) return;
+        if (card.classList.contains('matched')) return;
+        
+        // Start timer on first flip
+        if (!this.startTime) {
+          this.startTimer();
+        }
+        
+        card.classList.add('flipped');
+        this.flippedCards.push(card);
+        
+        if (this.flippedCards.length === 2) {
+          this.moves++;
+          this.updateStats();
+          this.checkMatch();
+        }
+      }
+      
+      checkMatch() {
+        this.isProcessing = true;
+        const [card1, card2] = this.flippedCards;
+        
+        if (card1.dataset.symbol === card2.dataset.symbol) {
+          // Match found
+          setTimeout(() => {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            this.matchedPairs++;
+            this.updateStats();
+            this.flippedCards = [];
+            this.isProcessing = false;
+            
+            // Check if game is complete
+            if (this.matchedPairs === this.cards.length) {
+              this.gameComplete();
+            }
+          }, 500);
+        } else {
+          // No match
+          setTimeout(() => {
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+            this.flippedCards = [];
+            this.isProcessing = false;
+          }, 1000);
+        }
+      }
+      
+      updateStats() {
+        this.movesElement.textContent = this.moves;
+        this.matchesElement.textContent = `${this.matchedPairs}/${this.cards.length}`;
+      }
+      
+      startTimer() {
+        this.startTime = Date.now();
+        this.timerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+          const minutes = Math.floor(elapsed / 60);
+          const seconds = elapsed % 60;
+          this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+      }
+      
+      stopTimer() {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+        this.timerElement.textContent = '0:00';
+      }
+      
+      gameComplete() {
+        this.stopTimer();
+        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        this.completeMessageElement.textContent = `🎉 恭喜完成！用时 ${timeStr}，翻牌 ${this.moves} 次`;
+        this.completeMessageElement.style.display = 'block';
+      }
+      
+      reset() {
+        this.init();
+      }
+    }
+    
+    const game = new MemoryGame();
+    
+    document.getElementById('newGameBtn').addEventListener('click', () => {
+      game.reset();
+    });
+  </script>
+</body>
+</html>
