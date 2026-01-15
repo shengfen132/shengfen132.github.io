@@ -207,6 +207,12 @@
         this.bestScore = parseInt(localStorage.getItem('2048-best') || '0');
         this.gameOver = false;
         
+        // Constants for layout and controls
+        this.CELL_SIZE = 100; // Cell size in pixels
+        this.CELL_GAP = 10; // Gap between cells in pixels
+        this.CELL_WITH_GAP = this.CELL_SIZE + this.CELL_GAP;
+        this.SWIPE_THRESHOLD = 30; // Minimum pixels for swipe detection
+        
         this.gridElement = document.getElementById('grid');
         this.scoreElement = document.getElementById('score');
         this.bestScoreElement = document.getElementById('bestScore');
@@ -437,7 +443,7 @@
               const tile = document.createElement('div');
               tile.className = `tile tile-${value}`;
               tile.textContent = value;
-              tile.style.transform = `translate(${c * 110}px, ${r * 110}px)`;
+              tile.style.transform = `translate(${c * this.CELL_WITH_GAP}px, ${r * this.CELL_WITH_GAP}px)`;
               this.gridElement.appendChild(tile);
             }
           }
@@ -489,16 +495,16 @@
           
           if (Math.abs(dx) > Math.abs(dy)) {
             // Horizontal swipe
-            if (dx > 30) {
+            if (dx > this.SWIPE_THRESHOLD) {
               this.move('right');
-            } else if (dx < -30) {
+            } else if (dx < -this.SWIPE_THRESHOLD) {
               this.move('left');
             }
           } else {
             // Vertical swipe
-            if (dy > 30) {
+            if (dy > this.SWIPE_THRESHOLD) {
               this.move('down');
-            } else if (dy < -30) {
+            } else if (dy < -this.SWIPE_THRESHOLD) {
               this.move('up');
             }
           }
