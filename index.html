@@ -3,98 +3,137 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>贪吃蛇 - Web 版（增强版）</title>
+  <title>游戏中心 - 在线小游戏平台</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .game-portal {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .game-portal h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .game-portal .subtitle {
+      color: var(--muted);
+      font-size: 18px;
+      margin-bottom: 40px;
+    }
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .game-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+      border: 1px solid var(--glass);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    .game-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .game-card h2 {
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      color: #e6eef6;
+    }
+    .game-card p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .game-status {
+      margin-top: 12px;
+      padding: 4px 12px;
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .coming-soon {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--muted);
+    }
+    .game-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <header class="topbar">
-      <h1>贪吃蛇（增强版 - 含道具和关卡）</h1>
-      <div class="top-actions">
-        <div class="level">关卡: <span id="level">1</span> - <span id="levelName">初级</span></div>
-        <div class="score">分数: <span id="score">0</span></div>
-        <div class="state" id="state">状态: 准备</div>
+  <main class="container game-portal">
+    <h1>🎮 游戏中心</h1>
+    <p class="subtitle">欢迎来到在线小游戏平台，选择你喜欢的游戏开始玩吧！</p>
+    
+    <div class="game-grid">
+      <a href="snake.html" class="game-card">
+        <div class="game-icon">🐍</div>
+        <h2>贪吃蛇</h2>
+        <p>经典贪吃蛇游戏，含道具系统和关卡系统。支持键盘、触摸和倾斜控制。</p>
+        <span class="game-status">可玩</span>
+      </a>
+      
+      <a href="tictactoe.html" class="game-card">
+        <div class="game-icon">⭕</div>
+        <h2>井字棋</h2>
+        <p>经典井字棋游戏，支持双人对战。简单有趣的策略游戏。</p>
+        <span class="game-status">可玩</span>
+      </a>
+      
+      <div class="game-card disabled" role="button" aria-disabled="true">
+        <div class="game-icon">🃏</div>
+        <h2>记忆翻牌</h2>
+        <p>考验你的记忆力，找出所有配对的卡牌。</p>
+        <span class="game-status coming-soon">即将推出</span>
       </div>
-    </header>
-
-    <section class="controls">
-      <div class="left-controls">
-        <button id="startBtn">开始</button>
-        <button id="pauseBtn" disabled>暂停</button>
-        <button id="restartBtn">重置</button>
+      
+      <div class="game-card disabled" role="button" aria-disabled="true">
+        <div class="game-icon">🎯</div>
+        <h2>打砖块</h2>
+        <p>经典打砖块游戏，控制挡板击碎所有砖块。</p>
+        <span class="game-status coming-soon">即将推出</span>
       </div>
-
-      <div class="right-controls">
-        <label class="speed">速度
-          <input id="speedRange" type="range" min="40" max="300" step="10" value="120">
-        </label>
-        <label class="toggle">
-          <input id="tiltToggle" type="checkbox"> 倾斜控制
-        </label>
-        <button id="enableTiltBtn" class="small" style="display:none">启用倾斜（权限）</button>
+      
+      <div class="game-card disabled" role="button" aria-disabled="true">
+        <div class="game-icon">🎲</div>
+        <h2>2048</h2>
+        <p>数字合并益智游戏，挑战你的逻辑思维。</p>
+        <span class="game-status coming-soon">即将推出</span>
       </div>
-    </section>
-
-    <div class="game-area">
-      <canvas id="gameCanvas" width="400" height="400" aria-label="贪吃蛇游戏画布"></canvas>
-
-      <!-- 虚拟方向键（移动端） -->
-      <div id="dpad" class="dpad" aria-hidden="true">
-        <button data-dir="up" class="dpad-btn up">↑</button>
-        <button data-dir="left" class="dpad-btn left">←</button>
-        <button data-dir="down" class="dpad-btn down">↓</button>
-        <button data-dir="right" class="dpad-btn right">→</button>
+      
+      <div class="game-card disabled" role="button" aria-disabled="true">
+        <div class="game-icon">🚀</div>
+        <h2>太空射击</h2>
+        <p>驾驶飞船击败敌人，体验刺激的太空冒险。</p>
+        <span class="game-status coming-soon">即将推出</span>
       </div>
-
-      <!-- 排行榜面板 -->
-      <aside class="leaderboard" id="leaderboard">
-        <h2>排行榜</h2>
-        <ol id="leaderboardList"></ol>
-        <button id="clearLeaderboard" class="small">清空排行榜</button>
-      </aside>
     </div>
-
-    <p class="hint">使用方向键或 WASD 控制（支持触摸虚拟按键与倾斜）。</p>
     
-    <details class="prop-legend">
-      <summary>道具说明</summary>
-      <ul>
-        <li><span class="prop-speed">⚡ 加速</span> - 移动速度提升50%</li>
-        <li><span class="prop-slow">🐢 减速</span> - 移动速度降低50%</li>
-        <li><span class="prop-double">💎 双倍分</span> - 吃苹果得2分</li>
-        <li><span class="prop-invincible">🛡️ 无敌</span> - 可穿墙，不会自撞</li>
-        <li><span class="prop-shrink">✂️ 缩短</span> - 立即缩短蛇身一半</li>
-      </ul>
-    </details>
-    
-    <details class="level-legend">
-      <summary>关卡说明</summary>
-      <ul>
-        <li><strong>初级</strong> - 目标: 10分，速度: 正常</li>
-        <li><strong>入门</strong> - 目标: 25分，速度: 更快10%</li>
-        <li><strong>进阶</strong> - 目标: 45分，速度: 更快20%</li>
-        <li><strong>高手</strong> - 目标: 70分，速度: 更快30%</li>
-        <li><strong>专家</strong> - 目标: 100分，速度: 更快40%</li>
-        <li><strong>大师</strong> - 目标: 150分，速度: 更快50%</li>
-        <li><strong>传奇</strong> - 目标: 999分，速度: 更快60%</li>
-      </ul>
-      <p class="level-note">随着关卡提升，游戏速度会自动加快，道具出现概率也会增加！</p>
-    </details>
+    <p class="hint" style="margin-top: 40px;">更多游戏持续添加中...</p>
   </main>
-
-  <!-- 游戏结束后输入名字的简单模态 -->
-  <div id="nameModal" class="modal" aria-hidden="true">
-    <div class="modal-content">
-      <h3>游戏结束</h3>
-      <p>得分: <span id="finalScore">0</span></p>
-      <label>你的名字（榜上显示）<input id="playerName" type="text" maxlength="20" placeholder="Player"></label>
-      <div class="modal-actions">
-        <button id="saveScoreBtn">保存</button>
-        <button id="closeModalBtn" class="small">关闭</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="script.js"></script>
 </body>
 </html>

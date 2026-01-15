@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>井字棋 - 游戏中心</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .tictactoe-container {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 24px auto;
+      max-width: 360px;
+      aspect-ratio: 1;
+    }
+    .cell {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+      border: 2px solid var(--glass);
+      border-radius: 12px;
+      font-size: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .cell:hover:not(.taken) {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+      border-color: rgba(34, 197, 94, 0.3);
+      transform: scale(1.05);
+    }
+    .cell.taken {
+      cursor: not-allowed;
+    }
+    .cell.x {
+      color: #22c55e;
+    }
+    .cell.o {
+      color: #3b82f6;
+    }
+    .cell.winner {
+      background: linear-gradient(180deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+      animation: pulse 0.5s ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .game-info {
+      margin: 20px 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .player-x { color: #22c55e; }
+    .player-o { color: #3b82f6; }
+    .controls {
+      margin: 24px 0;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="tictactoe-container">
+      <a href="index.html" class="back-link">🏠 返回游戏中心</a>
+      <h1>⭕ 井字棋</h1>
+      
+      <div class="game-info" id="gameInfo">
+        <span class="player-x">玩家 X</span> 的回合
+      </div>
+      
+      <div class="game-board" id="gameBoard">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+      
+      <div class="controls">
+        <button id="restartBtn">重新开始</button>
+      </div>
+      
+      <p class="hint">玩家 X 和 玩家 O 轮流落子，先连成三个的获胜！</p>
+    </div>
+  </main>
+  
+  <script>
+    const board = ['', '', '', '', '', '', '', '', ''];
+    let currentPlayer = 'X';
+    let gameActive = true;
+    
+    const gameBoard = document.getElementById('gameBoard');
+    const gameInfo = document.getElementById('gameInfo');
+    const restartBtn = document.getElementById('restartBtn');
+    const cells = document.querySelectorAll('.cell');
+    
+    const winningConditions = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+      [0, 4, 8], [2, 4, 6]              // diagonals
+    ];
+    
+    function handleCellClick(e) {
+      const cell = e.target;
+      const index = parseInt(cell.dataset.index);
+      
+      if (board[index] !== '' || !gameActive) {
+        return;
+      }
+      
+      board[index] = currentPlayer;
+      cell.textContent = currentPlayer;
+      cell.classList.add('taken', currentPlayer.toLowerCase());
+      
+      checkResult();
+    }
+    
+    function checkResult() {
+      let roundWon = false;
+      let winningCells = [];
+      
+      for (let i = 0; i < winningConditions.length; i++) {
+        const [a, b, c] = winningConditions[i];
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          roundWon = true;
+          winningCells = [a, b, c];
+          break;
+        }
+      }
+      
+      if (roundWon) {
+        gameActive = false;
+        const playerClass = currentPlayer === 'X' ? 'player-x' : 'player-o';
+        gameInfo.innerHTML = `<span class="${playerClass}">玩家 ${currentPlayer}</span> 获胜！🎉`;
+        
+        // Highlight winning cells
+        winningCells.forEach(index => {
+          cells[index].classList.add('winner');
+        });
+        return;
+      }
+      
+      if (!board.includes('')) {
+        gameActive = false;
+        gameInfo.textContent = '平局！🤝';
+        return;
+      }
+      
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      const playerClass = currentPlayer === 'X' ? 'player-x' : 'player-o';
+      gameInfo.innerHTML = `<span class="${playerClass}">玩家 ${currentPlayer}</span> 的回合`;
+    }
+    
+    function restartGame() {
+      board.fill('');
+      currentPlayer = 'X';
+      gameActive = true;
+      gameInfo.innerHTML = '<span class="player-x">玩家 X</span> 的回合';
+      
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('taken', 'x', 'o', 'winner');
+      });
+    }
+    
+    cells.forEach(cell => {
+      cell.addEventListener('click', handleCellClick);
+    });
+    
+    restartBtn.addEventListener('click', restartGame);
+  </script>
+</body>
+</html>
