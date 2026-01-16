@@ -44,46 +44,219 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+// Polyfill for roundRect if not available
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+    if (typeof radius === 'number') {
+      radius = { tl: radius, tr: radius, br: radius, bl: radius };
+    } else {
+      const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+      for (let side in defaultRadius) {
+        radius[side] = radius[side] || defaultRadius[side];
+      }
+    }
+    this.beginPath();
+    this.moveTo(x + radius.tl, y);
+    this.lineTo(x + width - radius.tr, y);
+    this.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    this.lineTo(x + width, y + height - radius.br);
+    this.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    this.lineTo(x + radius.bl, y + height);
+    this.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    this.lineTo(x, y + radius.tl);
+    this.quadraticCurveTo(x, y, x + radius.tl, y);
+    this.closePath();
+  };
+}
+
 // 基本画面渲染
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#021119';
+  
+  // 更真实的背景：深绿色草地效果
+  const bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  bgGradient.addColorStop(0, '#1a3a2a');
+  bgGradient.addColorStop(0.5, '#0d2818');
+  bgGradient.addColorStop(1, '#1a3a2a');
+  ctx.fillStyle = bgGradient;
   ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+  // 添加网格线效果，增强真实感
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= GRID; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * cellSize, 0);
+    ctx.lineTo(i * cellSize, canvas.height);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * cellSize);
+    ctx.lineTo(canvas.width, i * cellSize);
+    ctx.stroke();
+  }
 
   const state = game.getState();
   
-  // apple
+  // apple - 更真实的苹果
   if (state.apple) {
-    ctx.fillStyle = '#ff4d4f';
-    drawCell(state.apple.x, state.apple.y);
+    drawApple(state.apple.x, state.apple.y);
   }
   
   // props/items - 道具
   if (state.props && state.props.length > 0) {
     state.props.forEach(prop => {
-      ctx.fillStyle = prop.color || '#fbbf24';
-      drawCell(prop.x, prop.y, 0.8);
-      
-      // 添加闪烁效果
-      const blink = Math.floor(prop.age / 10) % 2;
-      if (blink === 0) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        drawCell(prop.x, prop.y, 0.6);
-      }
+      drawProp(prop);
     });
   }
   
-  // snake
+  // snake - 更真实的蛇
   for (let i = 0; i < state.snake.length; i++) {
     const p = state.snake[i];
-    // 无敌状态下蛇身发光
-    if (state.activeProp?.type === 'invincible') {
-      ctx.fillStyle = i === state.snake.length - 1 ? '#ec4899' : '#f472b6';
-    } else {
-      ctx.fillStyle = i === state.snake.length - 1 ? '#22c55e' : '#0ea5a4';
-    }
-    drawCell(p.x, p.y, 0.9);
+    const isHead = i === state.snake.length - 1;
+    const isTail = i === 0;
+    const isInvincible = state.activeProp?.type === 'invincible';
+    drawSnakeSegment(p.x, p.y, isHead, isTail, isInvincible);
   }
+}
+
+function drawSnakeSegment(x, y, isHead, isTail, isInvincible) {
+  const pad = cellSize * 0.05;
+  const size = cellSize * 0.9;
+  const cx = x * cellSize + pad;
+  const cy = y * cellSize + pad;
+  const radius = size * 0.3;
+  
+  // 蛇的颜色
+  let color1, color2;
+  if (isInvincible) {
+    color1 = isHead ? '#ec4899' : '#f472b6';
+    color2 = isHead ? '#db2777' : '#ec4899';
+  } else {
+    color1 = isHead ? '#22c55e' : '#0ea5a4';
+    color2 = isHead ? '#16a34a' : '#0d9488';
+  }
+  
+  // 渐变效果
+  const gradient = ctx.createRadialGradient(cx + size/3, cy + size/3, size * 0.1, cx + size/2, cy + size/2, size * 0.7);
+  gradient.addColorStop(0, color1);
+  gradient.addColorStop(1, color2);
+  ctx.fillStyle = gradient;
+  
+  // 圆角矩形
+  ctx.beginPath();
+  ctx.roundRect(cx, cy, size, size, radius);
+  ctx.fill();
+  
+  // 高光效果
+  const highlightGradient = ctx.createRadialGradient(cx + size * 0.3, cy + size * 0.3, 0, cx + size * 0.3, cy + size * 0.3, size * 0.4);
+  highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+  highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = highlightGradient;
+  ctx.beginPath();
+  ctx.arc(cx + size * 0.3, cy + size * 0.3, size * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 蛇头添加眼睛
+  if (isHead) {
+    ctx.fillStyle = '#ffffff';
+    const eyeSize = size * 0.15;
+    const eyeOffset = size * 0.3;
+    // 左眼
+    ctx.beginPath();
+    ctx.arc(cx + eyeOffset, cy + size * 0.4, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+    // 右眼
+    ctx.beginPath();
+    ctx.arc(cx + size - eyeOffset, cy + size * 0.4, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 瞳孔
+    ctx.fillStyle = '#000000';
+    const pupilSize = eyeSize * 0.6;
+    ctx.beginPath();
+    ctx.arc(cx + eyeOffset, cy + size * 0.4, pupilSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + size - eyeOffset, cy + size * 0.4, pupilSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawApple(x, y) {
+  const pad = cellSize * 0.1;
+  const size = cellSize * 0.8;
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const radius = size / 2;
+  
+  // 苹果主体 - 渐变红色
+  const gradient = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.2, cx, cy, radius);
+  gradient.addColorStop(0, '#ff6b6b');
+  gradient.addColorStop(0.7, '#ff4d4f');
+  gradient.addColorStop(1, '#d32f2f');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 高光
+  const highlightGradient = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.4, 0, cx - radius * 0.3, cy - radius * 0.4, radius * 0.5);
+  highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+  highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = highlightGradient;
+  ctx.beginPath();
+  ctx.arc(cx - radius * 0.3, cy - radius * 0.4, radius * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 果柄
+  ctx.strokeStyle = '#8b4513';
+  ctx.lineWidth = cellSize * 0.05;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - radius);
+  ctx.lineTo(cx + radius * 0.2, cy - radius - cellSize * 0.15);
+  ctx.stroke();
+  
+  // 叶子
+  ctx.fillStyle = '#4caf50';
+  ctx.beginPath();
+  ctx.ellipse(cx + radius * 0.3, cy - radius - cellSize * 0.1, radius * 0.3, radius * 0.2, Math.PI / 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawProp(prop) {
+  const pad = cellSize * 0.1;
+  const size = cellSize * 0.8;
+  const cx = prop.x * cellSize + cellSize / 2;
+  const cy = prop.y * cellSize + cellSize / 2;
+  const radius = size / 2;
+  
+  // 道具主体 - 发光效果
+  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+  const baseColor = prop.color || '#fbbf24';
+  gradient.addColorStop(0, baseColor);
+  gradient.addColorStop(0.5, baseColor);
+  gradient.addColorStop(1, 'rgba(251, 191, 36, 0.2)');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 闪烁效果
+  const blink = Math.floor(prop.age / 10) % 2;
+  if (blink === 0) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // 外发光环
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = cellSize * 0.05;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.9, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 function drawCell(x, y, scale = 1) {
