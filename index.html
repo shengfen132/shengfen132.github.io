@@ -6,6 +6,10 @@
   <title>游戏与工具中心 - 在线平台</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+    }
     .game-portal {
       text-align: center;
       padding: 48px 20px;
@@ -16,6 +20,17 @@
       margin-bottom: 8px;
       color: #1d1d1f;
       letter-spacing: -0.02em;
+      animation: fadeInDown 0.6s ease-out;
+    }
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     .game-portal .subtitle {
       color: #86868b;
@@ -23,6 +38,15 @@
       margin-bottom: 48px;
       font-weight: 400;
       line-height: 1.4;
+      animation: fadeIn 0.8s ease-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
     .game-grid {
       display: grid;
@@ -33,8 +57,10 @@
       padding: 0 20px;
     }
     .game-card {
-      background: #fbfbfd;
-      border: 1px solid #d2d2d7;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
       border-radius: 18px;
       padding: 32px 24px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -44,12 +70,30 @@
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+      animation: fadeInUp 0.6s ease-out backwards;
     }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .game-card:nth-child(1) { animation-delay: 0.1s; }
+    .game-card:nth-child(2) { animation-delay: 0.15s; }
+    .game-card:nth-child(3) { animation-delay: 0.2s; }
+    .game-card:nth-child(4) { animation-delay: 0.25s; }
+    .game-card:nth-child(5) { animation-delay: 0.3s; }
+    .game-card:nth-child(6) { animation-delay: 0.35s; }
     .game-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      border-color: #0071e3;
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+      border-color: rgba(0, 113, 227, 0.5);
+      background: rgba(255, 255, 255, 1);
     }
     .game-icon {
       font-size: 56px;
@@ -159,6 +203,41 @@
         <div class="game-icon">✍️</div>
         <h2>文字转手写</h2>
         <p>将输入的文字转换为手写风格，支持自定义字体样式和导出图片。</p>
+        <span class="game-status">可用</span>
+      </a>
+      
+      <a href="colorpicker.html" class="game-card">
+        <div class="game-icon">🎨</div>
+        <h2>颜色选择器</h2>
+        <p>选择颜色并获取多种格式代码，生成配色方案。</p>
+        <span class="game-status">可用</span>
+      </a>
+      
+      <a href="qrcode.html" class="game-card">
+        <div class="game-icon">📱</div>
+        <h2>二维码生成器</h2>
+        <p>快速生成二维码，支持自定义颜色和大小，可下载图片。</p>
+        <span class="game-status">可用</span>
+      </a>
+      
+      <a href="textcounter.html" class="game-card">
+        <div class="game-icon">📊</div>
+        <h2>文字计数器</h2>
+        <p>统计文字数量、字数、行数等详细信息，预估阅读时间。</p>
+        <span class="game-status">可用</span>
+      </a>
+      
+      <a href="unitconverter.html" class="game-card">
+        <div class="game-icon">🔄</div>
+        <h2>单位转换器</h2>
+        <p>快速转换长度、重量、温度、面积、体积等各种单位。</p>
+        <span class="game-status">可用</span>
+      </a>
+      
+      <a href="passwordgen.html" class="game-card">
+        <div class="game-icon">🔐</div>
+        <h2>密码生成器</h2>
+        <p>生成强随机密码，自定义长度和字符类型，保护账户安全。</p>
         <span class="game-status">可用</span>
       </a>
     </div>
