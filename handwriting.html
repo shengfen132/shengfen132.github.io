@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>文字转手写 - 在线工具</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .handwriting-container {
+      text-align: center;
+      padding: 20px;
+    }
+    .handwriting-container h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .handwriting-container .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass);
+      border-radius: 8px;
+      color: #e6eef6;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+    }
+    .input-section {
+      margin-bottom: 30px;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .input-section label {
+      display: block;
+      margin-bottom: 8px;
+      color: #e6eef6;
+      font-weight: 600;
+    }
+    .input-section textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass);
+      border-radius: 8px;
+      color: #e6eef6;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .input-section textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    .controls-section {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+    }
+    .control-group label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .control-group input,
+    .control-group select {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass);
+      border-radius: 6px;
+      color: #e6eef6;
+      font-size: 14px;
+    }
+    .control-group input[type="number"],
+    .control-group input[type="color"] {
+      cursor: pointer;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .action-buttons button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .action-buttons button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    .action-buttons button:active {
+      transform: translateY(0);
+    }
+    .action-buttons button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .action-buttons button.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .canvas-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    #handwritingCanvas {
+      display: block;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← 返回首页</a>
+  
+  <main class="container handwriting-container">
+    <h1>✍️ 文字转手写</h1>
+    <p class="subtitle">将输入的文字转换为手写风格，支持自定义字体样式和导出图片</p>
+    
+    <div class="input-section">
+      <label for="textInput">输入文字：</label>
+      <textarea id="textInput" placeholder="在这里输入你想转换的文字..."></textarea>
+    </div>
+    
+    <div class="controls-section">
+      <div class="control-group">
+        <label for="fontSize">字体大小：</label>
+        <input type="number" id="fontSize" value="32" min="12" max="72" />
+      </div>
+      
+      <div class="control-group">
+        <label for="lineHeight">行高：</label>
+        <input type="number" id="lineHeight" value="1.5" min="1" max="3" step="0.1" />
+      </div>
+      
+      <div class="control-group">
+        <label for="textColor">文字颜色：</label>
+        <input type="color" id="textColor" value="#000000" />
+      </div>
+      
+      <div class="control-group">
+        <label for="fontStyle">字体样式：</label>
+        <select id="fontStyle">
+          <option value="cursive">手写体 (Cursive)</option>
+          <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+          <option value="'Brush Script MT', cursive">Brush Script</option>
+          <option value="'Lucida Handwriting', cursive">Lucida Handwriting</option>
+          <option value="'STKaiti', 'KaiTi', serif">楷体 (KaiTi)</option>
+          <option value="'STXingkai', 'FZShuTi', cursive">行楷 (XingKai)</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label for="randomOffset">随机偏移：</label>
+        <input type="number" id="randomOffset" value="2" min="0" max="10" />
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button id="generateBtn">生成手写</button>
+      <button id="downloadBtn" class="secondary">下载图片</button>
+      <button id="clearBtn" class="secondary">清空</button>
+    </div>
+    
+    <div class="canvas-container">
+      <canvas id="handwritingCanvas"></canvas>
+    </div>
+  </main>
+  
+  <script>
+    const textInput = document.getElementById('textInput');
+    const fontSizeInput = document.getElementById('fontSize');
+    const lineHeightInput = document.getElementById('lineHeight');
+    const textColorInput = document.getElementById('textColor');
+    const fontStyleInput = document.getElementById('fontStyle');
+    const randomOffsetInput = document.getElementById('randomOffset');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const canvas = document.getElementById('handwritingCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Initialize canvas size
+    function initCanvas() {
+      const container = canvas.parentElement;
+      const width = Math.min(container.clientWidth - 40, 760);
+      canvas.width = width;
+      canvas.height = 800; // Initial height, will adjust based on content
+      
+      // Fill with white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    initCanvas();
+    window.addEventListener('resize', () => {
+      const text = textInput.value;
+      if (text) {
+        generateHandwriting();
+      } else {
+        initCanvas();
+      }
+    });
+    
+    // Generate handwriting
+    function generateHandwriting() {
+      const text = textInput.value;
+      if (!text.trim()) {
+        alert('请输入要转换的文字！');
+        return;
+      }
+      
+      const fontSize = parseInt(fontSizeInput.value);
+      const lineHeight = parseFloat(lineHeightInput.value);
+      const textColor = textColorInput.value;
+      const fontStyle = fontStyleInput.value;
+      const randomOffset = parseInt(randomOffsetInput.value);
+      
+      // Reset canvas
+      initCanvas();
+      
+      // Set font
+      ctx.font = `${fontSize}px ${fontStyle}`;
+      ctx.fillStyle = textColor;
+      ctx.textBaseline = 'top';
+      
+      // Calculate line wrapping
+      const maxWidth = canvas.width - 60; // 30px padding on each side
+      const lines = [];
+      const paragraphs = text.split('\n');
+      
+      paragraphs.forEach(paragraph => {
+        if (!paragraph.trim()) {
+          lines.push('');
+          return;
+        }
+        
+        const words = paragraph.split('');
+        let currentLine = '';
+        
+        for (let i = 0; i < words.length; i++) {
+          const testLine = currentLine + words[i];
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = words[i];
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+      });
+      
+      // Calculate required canvas height
+      const lineSpacing = fontSize * lineHeight;
+      const requiredHeight = Math.max(800, lines.length * lineSpacing + 60);
+      
+      if (canvas.height !== requiredHeight) {
+        canvas.height = requiredHeight;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${fontSize}px ${fontStyle}`;
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = 'top';
+      }
+      
+      // Draw text with handwriting effect
+      let y = 30;
+      lines.forEach(line => {
+        let x = 30;
+        
+        // Add slight rotation and position variation for handwriting effect
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          // Random offset for natural handwriting look
+          const offsetX = (Math.random() - 0.5) * randomOffset;
+          const offsetY = (Math.random() - 0.5) * randomOffset;
+          const rotation = (Math.random() - 0.5) * 0.05; // Slight rotation
+          
+          ctx.save();
+          ctx.translate(x + offsetX, y + offsetY);
+          ctx.rotate(rotation);
+          ctx.fillText(char, 0, 0);
+          ctx.restore();
+          
+          // Move x position for next character
+          const charWidth = ctx.measureText(char).width;
+          x += charWidth;
+        }
+        
+        y += lineSpacing;
+      });
+    }
+    
+    // Download image
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'handwriting.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    
+    // Clear canvas
+    function clearCanvas() {
+      textInput.value = '';
+      initCanvas();
+    }
+    
+    // Event listeners
+    generateBtn.addEventListener('click', generateHandwriting);
+    downloadBtn.addEventListener('click', downloadImage);
+    clearBtn.addEventListener('click', clearCanvas);
+    
+    // Auto-generate on Enter (with Ctrl/Cmd)
+    textInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        generateHandwriting();
+      }
+    });
+  </script>
+</body>
+</html>
