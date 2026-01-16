@@ -145,9 +145,32 @@
       border: 1px solid #ddd;
       border-radius: 4px;
     }
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .notification.error {
+      background: rgba(239, 68, 68, 0.9);
+    }
   </style>
 </head>
 <body>
+  <div id="notification" class="notification"></div>
   <a href="index.html" class="back-btn">← 返回首页</a>
   
   <main class="container handwriting-container">
@@ -178,12 +201,12 @@
       <div class="control-group">
         <label for="fontStyle">字体样式：</label>
         <select id="fontStyle">
-          <option value="cursive">手写体 (Cursive)</option>
-          <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
-          <option value="'Brush Script MT', cursive">Brush Script</option>
-          <option value="'Lucida Handwriting', cursive">Lucida Handwriting</option>
-          <option value="'STKaiti', 'KaiTi', serif">楷体 (KaiTi)</option>
-          <option value="'STXingkai', 'FZShuTi', cursive">行楷 (XingKai)</option>
+          <option value="cursive, sans-serif">手写体 (Cursive)</option>
+          <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</option>
+          <option value="'Brush Script MT', cursive, sans-serif">Brush Script</option>
+          <option value="'Lucida Handwriting', cursive, sans-serif">Lucida Handwriting</option>
+          <option value="'STKaiti', 'KaiTi', serif, sans-serif">楷体 (KaiTi)</option>
+          <option value="'STXingkai', 'FZShuTi', cursive, sans-serif">行楷 (XingKai)</option>
         </select>
       </div>
       
@@ -216,6 +239,16 @@
     const clearBtn = document.getElementById('clearBtn');
     const canvas = document.getElementById('handwritingCanvas');
     const ctx = canvas.getContext('2d');
+    const notificationEl = document.getElementById('notification');
+    
+    // Show notification
+    function showNotification(message, isError = false) {
+      notificationEl.textContent = message;
+      notificationEl.className = 'notification show' + (isError ? ' error' : '');
+      setTimeout(() => {
+        notificationEl.classList.remove('show');
+      }, 3000);
+    }
     
     // Initialize canvas size
     function initCanvas() {
@@ -243,7 +276,7 @@
     function generateHandwriting() {
       const text = textInput.value;
       if (!text.trim()) {
-        alert('请输入要转换的文字！');
+        showNotification('请输入要转换的文字！', true);
         return;
       }
       
@@ -332,6 +365,8 @@
         
         y += lineSpacing;
       });
+      
+      showNotification('手写效果生成成功！');
     }
     
     // Download image
@@ -340,12 +375,14 @@
       link.download = 'handwriting.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
+      showNotification('图片已下载！');
     }
     
     // Clear canvas
     function clearCanvas() {
       textInput.value = '';
       initCanvas();
+      showNotification('已清空内容');
     }
     
     // Event listeners
