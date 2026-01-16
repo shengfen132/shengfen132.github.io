@@ -379,9 +379,24 @@
     
     function copyToClipboard(elementId) {
       const input = document.getElementById(elementId);
-      input.select();
-      document.execCommand('copy');
-      showNotification('已复制到剪贴板！');
+      const text = input.value;
+      
+      // Use modern Clipboard API with fallback
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showNotification('已复制到剪贴板！');
+        }).catch(() => {
+          // Fallback to deprecated method
+          input.select();
+          document.execCommand('copy');
+          showNotification('已复制到剪贴板！');
+        });
+      } else {
+        // Fallback for older browsers
+        input.select();
+        document.execCommand('copy');
+        showNotification('已复制到剪贴板！');
+      }
     }
     
     colorPicker.addEventListener('input', (e) => {

@@ -294,12 +294,33 @@
     
     copyBtn.addEventListener('click', () => {
       textInput.select();
-      document.execCommand('copy');
-      const originalText = copyBtn.textContent;
-      copyBtn.textContent = '已复制！';
-      setTimeout(() => {
-        copyBtn.textContent = originalText;
-      }, 2000);
+      
+      // Use modern Clipboard API with fallback
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textInput.value).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '已复制！';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        }).catch(() => {
+          // Fallback to deprecated method
+          document.execCommand('copy');
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '已复制！';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        });
+      } else {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '已复制！';
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+        }, 2000);
+      }
     });
     
     // Initialize
