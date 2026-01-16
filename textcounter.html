@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>文字计数器 - 在线工具</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+    }
+    .tool-container {
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .tool-container h1 {
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1d1d1f;
+      letter-spacing: -0.02em;
+    }
+    .tool-container .subtitle {
+      color: #86868b;
+      font-size: 19px;
+      margin-bottom: 40px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 980px;
+      color: #0071e3;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: #0071e3;
+      transform: scale(1.05);
+    }
+    .input-section {
+      max-width: 800px;
+      margin: 0 auto 32px;
+      text-align: left;
+    }
+    .input-section label {
+      display: block;
+      margin-bottom: 8px;
+      color: #1d1d1f;
+      font-weight: 600;
+      font-size: 17px;
+    }
+    .input-section textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      color: #1d1d1f;
+      font-size: 17px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      resize: vertical;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(10px);
+      line-height: 1.6;
+    }
+    .input-section textarea:focus {
+      outline: none;
+      border-color: #0071e3;
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 800px;
+      margin: 0 auto 32px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+    .stat-label {
+      color: #86868b;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      color: #0071e3;
+      font-size: 36px;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .action-buttons button {
+      padding: 12px 28px;
+      background: #f5f5f7;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 980px;
+      color: #1d1d1f;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: -0.01em;
+    }
+    .action-buttons button:hover {
+      background: rgba(255, 255, 255, 1);
+      transform: scale(1.02);
+    }
+    .action-buttons button:active {
+      transform: scale(0.98);
+    }
+    .details-section {
+      max-width: 800px;
+      margin: 40px auto 0;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 18px;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .details-section h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1d1d1f;
+    }
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      color: #1d1d1f;
+    }
+    .detail-item:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #86868b;
+      font-weight: 500;
+    }
+    .detail-value {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← 返回首页</a>
+  
+  <main class="container tool-container">
+    <h1>📊 文字计数器</h1>
+    <p class="subtitle">统计文字数量、字数、行数等信息</p>
+    
+    <div class="input-section">
+      <label for="textInput">输入文字：</label>
+      <textarea id="textInput" placeholder="在这里输入或粘贴文字..."></textarea>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">总字符数</div>
+        <div class="stat-value" id="totalChars">0</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-label">不含空格</div>
+        <div class="stat-value" id="charsNoSpace">0</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-label">单词数</div>
+        <div class="stat-value" id="wordCount">0</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-label">行数</div>
+        <div class="stat-value" id="lineCount">0</div>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button id="clearBtn">清空文本</button>
+      <button id="copyBtn">复制文本</button>
+    </div>
+    
+    <div class="details-section">
+      <h2>详细统计</h2>
+      <div class="detail-item">
+        <span class="detail-label">段落数：</span>
+        <span class="detail-value" id="paragraphCount">0</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">句子数：</span>
+        <span class="detail-value" id="sentenceCount">0</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">平均单词长度：</span>
+        <span class="detail-value" id="avgWordLength">0</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">预计阅读时间：</span>
+        <span class="detail-value" id="readingTime">0 分钟</span>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    const textInput = document.getElementById('textInput');
+    const totalChars = document.getElementById('totalChars');
+    const charsNoSpace = document.getElementById('charsNoSpace');
+    const wordCount = document.getElementById('wordCount');
+    const lineCount = document.getElementById('lineCount');
+    const paragraphCount = document.getElementById('paragraphCount');
+    const sentenceCount = document.getElementById('sentenceCount');
+    const avgWordLength = document.getElementById('avgWordLength');
+    const readingTime = document.getElementById('readingTime');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    function updateStats() {
+      const text = textInput.value;
+      
+      // Total characters
+      totalChars.textContent = text.length;
+      
+      // Characters without spaces
+      charsNoSpace.textContent = text.replace(/\s/g, '').length;
+      
+      // Word count
+      const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+      wordCount.textContent = words.length;
+      
+      // Line count
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+      lineCount.textContent = lines.length;
+      
+      // Paragraph count
+      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      paragraphCount.textContent = paragraphs.length;
+      
+      // Sentence count
+      const sentences = text.split(/[.!?。！？]+/).filter(s => s.trim().length > 0);
+      sentenceCount.textContent = sentences.length;
+      
+      // Average word length
+      if (words.length > 0) {
+        const totalLength = words.reduce((sum, word) => sum + word.length, 0);
+        avgWordLength.textContent = (totalLength / words.length).toFixed(1);
+      } else {
+        avgWordLength.textContent = '0';
+      }
+      
+      // Reading time (assuming 200 words per minute)
+      const minutes = Math.ceil(words.length / 200);
+      readingTime.textContent = minutes + ' 分钟';
+    }
+    
+    textInput.addEventListener('input', updateStats);
+    
+    clearBtn.addEventListener('click', () => {
+      textInput.value = '';
+      updateStats();
+    });
+    
+    copyBtn.addEventListener('click', () => {
+      textInput.select();
+      
+      // Use modern Clipboard API with fallback
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textInput.value).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '已复制！';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        }).catch(() => {
+          // Fallback to deprecated method
+          document.execCommand('copy');
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '已复制！';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        });
+      } else {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '已复制！';
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+        }, 2000);
+      }
+    });
+    
+    // Initialize
+    updateStats();
+  </script>
+</body>
+</html>
