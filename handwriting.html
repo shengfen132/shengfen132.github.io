@@ -8,39 +8,42 @@
   <style>
     .handwriting-container {
       text-align: center;
-      padding: 20px;
+      padding: 32px 20px;
     }
     .handwriting-container h1 {
-      font-size: 36px;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1d1d1f;
+      letter-spacing: -0.02em;
     }
     .handwriting-container .subtitle {
-      color: var(--muted);
-      font-size: 16px;
-      margin-bottom: 30px;
+      color: #86868b;
+      font-size: 19px;
+      margin-bottom: 40px;
+      font-weight: 400;
+      line-height: 1.4;
     }
     .back-btn {
       position: absolute;
       top: 20px;
       left: 20px;
-      padding: 8px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass);
-      border-radius: 8px;
-      color: #e6eef6;
+      padding: 10px 18px;
+      background: #f5f5f7;
+      border: 1px solid #d2d2d7;
+      border-radius: 980px;
+      color: #0071e3;
       text-decoration: none;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      font-size: 14px;
     }
     .back-btn:hover {
-      background: rgba(59, 130, 246, 0.2);
-      border-color: #3b82f6;
+      background: #e8e8ed;
+      border-color: #0071e3;
     }
     .input-section {
-      margin-bottom: 30px;
+      margin-bottom: 32px;
       text-align: left;
       max-width: 800px;
       margin-left: auto;
@@ -49,31 +52,34 @@
     .input-section label {
       display: block;
       margin-bottom: 8px;
-      color: #e6eef6;
+      color: #1d1d1f;
       font-weight: 600;
+      font-size: 17px;
     }
     .input-section textarea {
       width: 100%;
       min-height: 150px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass);
-      border-radius: 8px;
-      color: #e6eef6;
-      font-size: 16px;
-      font-family: inherit;
+      padding: 14px;
+      background: #fbfbfd;
+      border: 1px solid #d2d2d7;
+      border-radius: 12px;
+      color: #1d1d1f;
+      font-size: 17px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
       resize: vertical;
+      transition: all 0.2s ease;
     }
     .input-section textarea:focus {
       outline: none;
-      border-color: #3b82f6;
+      border-color: #0071e3;
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
     }
     .controls-section {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       flex-wrap: wrap;
       justify-content: center;
-      margin-bottom: 30px;
+      margin-bottom: 32px;
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
@@ -85,17 +91,25 @@
       text-align: left;
     }
     .control-group label {
-      color: var(--muted);
+      color: #86868b;
       font-size: 14px;
+      font-weight: 500;
     }
     .control-group input,
     .control-group select {
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass);
-      border-radius: 6px;
-      color: #e6eef6;
-      font-size: 14px;
+      padding: 10px 14px;
+      background: #fbfbfd;
+      border: 1px solid #d2d2d7;
+      border-radius: 8px;
+      color: #1d1d1f;
+      font-size: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      transition: all 0.2s ease;
+    }
+    .control-group input:focus,
+    .control-group select:focus {
+      outline: none;
+      border-color: #0071e3;
     }
     .control-group input[type="number"],
     .control-group input[type="color"] {
@@ -105,67 +119,73 @@
       display: flex;
       gap: 12px;
       justify-content: center;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
     }
     .action-buttons button {
-      padding: 12px 24px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      padding: 12px 28px;
+      background: #0071e3;
       border: none;
-      border-radius: 8px;
+      border-radius: 980px;
       color: white;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 17px;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: -0.01em;
     }
     .action-buttons button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+      background: #0077ed;
+      transform: scale(1.02);
     }
     .action-buttons button:active {
-      transform: translateY(0);
+      transform: scale(0.98);
     }
     .action-buttons button.secondary {
-      background: rgba(255, 255, 255, 0.1);
+      background: #f5f5f7;
+      color: #1d1d1f;
+      border: 1px solid #d2d2d7;
     }
     .action-buttons button.secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: #e8e8ed;
     }
     .canvas-container {
       max-width: 800px;
       margin: 0 auto;
       background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #d2d2d7;
     }
     #handwritingCanvas {
       display: block;
       width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      border: 1px solid #d2d2d7;
+      border-radius: 12px;
     }
     .notification {
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 12px 20px;
-      background: rgba(59, 130, 246, 0.9);
+      padding: 14px 22px;
+      background: #1d1d1f;
       color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       z-index: 1000;
       opacity: 0;
       transform: translateY(-20px);
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
+      font-size: 15px;
+      font-weight: 500;
     }
     .notification.show {
       opacity: 1;
       transform: translateY(0);
     }
     .notification.error {
-      background: rgba(239, 68, 68, 0.9);
+      background: #ff3b30;
     }
   </style>
 </head>
@@ -207,6 +227,11 @@
           <option value="'Lucida Handwriting', cursive, sans-serif">Lucida Handwriting</option>
           <option value="'STKaiti', 'KaiTi', serif, sans-serif">楷体 (KaiTi)</option>
           <option value="'STXingkai', 'FZShuTi', cursive, sans-serif">行楷 (XingKai)</option>
+          <option value="'Segoe Script', cursive, sans-serif">Segoe Script</option>
+          <option value="'Bradley Hand', cursive, sans-serif">Bradley Hand</option>
+          <option value="'Snell Roundhand', cursive, sans-serif">Snell Roundhand</option>
+          <option value="'Apple Chancery', cursive, sans-serif">Apple Chancery</option>
+          <option value="'Monotype Corsiva', cursive, sans-serif">Monotype Corsiva</option>
         </select>
       </div>
       
