@@ -208,12 +208,17 @@
     <p class="subtitle">安全地清除 Office 文档中的作者、公司等敏感元数据信息</p>
     
     <div class="card">
+      <div style="margin-bottom: 16px;">
+        <button class="btn btn-secondary" id="switchModeBtn">切换到文件夹模式</button>
+      </div>
+      
       <div class="upload-area" id="uploadArea">
         <div class="upload-icon">📤</div>
-        <div class="upload-text">点击或拖拽文件到此处上传</div>
-        <div class="upload-hint">支持 .docx, .xlsx, .pptx 格式</div>
+        <div class="upload-text" id="uploadText">点击或拖拽文件到此处上传</div>
+        <div class="upload-hint" id="uploadHint">支持 .docx, .xlsx, .pptx 格式</div>
       </div>
       <input type="file" id="fileInput" accept=".docx,.xlsx,.pptx" />
+      <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;" />
       
       <div class="file-info" id="fileInfo">
         <div class="file-info-item">
@@ -228,6 +233,33 @@
           <span class="file-info-label">文件类型：</span>
           <span id="fileType"></span>
         </div>
+        <div class="file-info-item" id="fileCountInfo" style="display:none;">
+          <span class="file-info-label">文件数量：</span>
+          <span id="fileCount"></span>
+        </div>
+      </div>
+      
+      <div class="file-info" id="optionsInfo" style="display:none; margin-top: 16px;">
+        <div style="margin-bottom: 12px; font-weight: 600; color: #1d1d1f;">文件属性清除选项：</div>
+        <label style="display: block; margin: 8px 0; cursor: pointer;">
+          <input type="checkbox" id="clearArchive" checked style="margin-right: 8px;">
+          清除存档属性
+        </label>
+        <label style="display: block; margin: 8px 0; cursor: pointer;">
+          <input type="checkbox" id="clearReadonly" checked style="margin-right: 8px;">
+          清除只读属性
+        </label>
+        <label style="display: block; margin: 8px 0; cursor: pointer;">
+          <input type="checkbox" id="clearHidden" checked style="margin-right: 8px;">
+          清除隐藏属性
+        </label>
+        <label style="display: block; margin: 8px 0; cursor: pointer;">
+          <input type="checkbox" id="clearSystem" checked style="margin-right: 8px;">
+          清除系统属性
+        </label>
+        <div style="margin-top: 12px; font-size: 13px; color: #86868b;">
+          注意：浏览器环境下文件属性信息有限，此选项主要用于标记处理意图
+        </div>
       </div>
       
       <div class="status" id="status"></div>
@@ -239,6 +271,9 @@
         <button class="btn btn-primary" id="downloadBtn" style="display:none;">
           下载清除后的文件
         </button>
+        <button class="btn btn-primary" id="downloadAllBtn" style="display:none;">
+          下载所有文件
+        </button>
         <button class="btn btn-secondary" id="resetBtn" style="display:none;">
           重新上传
         </button>
@@ -249,9 +284,12 @@
         <ul>
           <li>🔒 完全本地处理，不上传到服务器，保护隐私</li>
           <li>📝 支持 Word (.docx)、Excel (.xlsx)、PowerPoint (.pptx) 文档</li>
+          <li>📁 支持单文件和文件夹批量处理</li>
           <li>🗑️ 清除核心属性：作者、标题、主题、关键词、备注等</li>
           <li>🗑️ 清除扩展属性：公司、管理者、类别、应用程序等</li>
+          <li>🔓 清除文件属性：存档、只读、隐藏、系统属性</li>
           <li>⚡ 快速处理，即刻下载</li>
+          <li>💾 直接使用原文件名下载，无需重命名</li>
           <li>🎯 保留文档内容和格式，仅删除元数据</li>
         </ul>
       </div>
@@ -260,24 +298,62 @@
 
   <script>
     let selectedFile = null;
+    let selectedFiles = [];
     let processedBlob = null;
+    let processedBlobs = [];
+    let isFolderMode = false;
     
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
+    const folderInput = document.getElementById('folderInput');
     const fileInfo = document.getElementById('fileInfo');
+    const optionsInfo = document.getElementById('optionsInfo');
     const status = document.getElementById('status');
     const processBtn = document.getElementById('processBtn');
     const downloadBtn = document.getElementById('downloadBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const switchModeBtn = document.getElementById('switchModeBtn');
+    const uploadText = document.getElementById('uploadText');
+    const uploadHint = document.getElementById('uploadHint');
+    const fileCountInfo = document.getElementById('fileCountInfo');
+    
+    // 切换模式
+    switchModeBtn.addEventListener('click', () => {
+      isFolderMode = !isFolderMode;
+      if (isFolderMode) {
+        switchModeBtn.textContent = '切换到单文件模式';
+        uploadText.textContent = '点击选择文件夹';
+        uploadHint.textContent = '将处理文件夹内所有 Office 文档';
+        fileInput.style.display = 'none';
+        folderInput.style.display = 'inline-block';
+      } else {
+        switchModeBtn.textContent = '切换到文件夹模式';
+        uploadText.textContent = '点击或拖拽文件到此处上传';
+        uploadHint.textContent = '支持 .docx, .xlsx, .pptx 格式';
+        fileInput.style.display = 'inline-block';
+        folderInput.style.display = 'none';
+      }
+      resetAll();
+    });
     
     // 点击上传区域触发文件选择
     uploadArea.addEventListener('click', () => {
-      fileInput.click();
+      if (isFolderMode) {
+        folderInput.click();
+      } else {
+        fileInput.click();
+      }
     });
     
     // 文件选择
     fileInput.addEventListener('change', (e) => {
       handleFile(e.target.files[0]);
+    });
+    
+    // 文件夹选择
+    folderInput.addEventListener('change', (e) => {
+      handleFolder(e.target.files);
     });
     
     // 拖拽上传
@@ -293,8 +369,66 @@
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
-      handleFile(e.dataTransfer.files[0]);
+      
+      if (isFolderMode) {
+        handleFolder(e.dataTransfer.files);
+      } else {
+        handleFile(e.dataTransfer.files[0]);
+      }
     });
+    
+    // 处理文件夹
+    function handleFolder(files) {
+      if (!files || files.length === 0) return;
+      
+      const validFiles = [];
+      const validExtensions = ['.docx', '.xlsx', '.pptx'];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        
+        if (hasValidExtension) {
+          validFiles.push(file);
+        }
+      }
+      
+      if (validFiles.length === 0) {
+        showStatus('error', '文件夹中没有找到有效的 Office 文档（.docx, .xlsx, .pptx）');
+        return;
+      }
+      
+      selectedFiles = validFiles;
+      processedBlobs = [];
+      
+      // 显示文件信息
+      if (validFiles.length === 1) {
+        const file = validFiles[0];
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        const ext = file.name.split('.').pop();
+        document.getElementById('fileType').textContent = ext.toUpperCase();
+        fileCountInfo.style.display = 'none';
+      } else {
+        document.getElementById('fileName').textContent = '多个文件';
+        const totalSize = validFiles.reduce((sum, f) => sum + f.size, 0);
+        document.getElementById('fileSize').textContent = formatFileSize(totalSize);
+        document.getElementById('fileType').textContent = '混合';
+        document.getElementById('fileCount').textContent = validFiles.length + ' 个';
+        fileCountInfo.style.display = 'block';
+      }
+      
+      fileInfo.classList.add('show');
+      optionsInfo.style.display = 'block';
+      
+      // 启用处理按钮
+      processBtn.disabled = false;
+      downloadBtn.style.display = 'none';
+      downloadAllBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+      showStatus('info', `已选择 ${validFiles.length} 个文件，点击"清除属性"开始处理`);
+    }
     
     // 处理文件
     function handleFile(file) {
@@ -313,17 +447,22 @@
       const ext = fileName.split('.').pop();
       
       selectedFile = file;
+      selectedFiles = [file];
       processedBlob = null;
+      processedBlobs = [];
       
       // 显示文件信息
       document.getElementById('fileName').textContent = file.name;
       document.getElementById('fileSize').textContent = formatFileSize(file.size);
       document.getElementById('fileType').textContent = ext.toUpperCase();
+      fileCountInfo.style.display = 'none';
       fileInfo.classList.add('show');
+      optionsInfo.style.display = 'block';
       
       // 启用处理按钮
       processBtn.disabled = false;
       downloadBtn.style.display = 'none';
+      downloadAllBtn.style.display = 'none';
       resetBtn.style.display = 'none';
       showStatus('info', '文件已选择，点击"清除属性"开始处理');
     }
@@ -343,19 +482,36 @@
     
     // 处理按钮点击
     processBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+      if (selectedFiles.length === 0) return;
       
       processBtn.disabled = true;
       processBtn.innerHTML = '<span class="spinner"></span>处理中...';
       showStatus('info', '正在处理文档，请稍候...');
       
       try {
-        const cleanedBlob = await cleanOfficeDocument(selectedFile);
-        processedBlob = cleanedBlob;
+        processedBlobs = [];
         
-        showStatus('success', '✓ 文档属性已成功清除！点击下载按钮获取处理后的文件');
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          showStatus('info', `正在处理文件 ${i + 1}/${selectedFiles.length}: ${file.name}`);
+          
+          const cleanedBlob = await cleanOfficeDocument(file);
+          processedBlobs.push({
+            blob: cleanedBlob,
+            name: file.name
+          });
+        }
+        
+        if (selectedFiles.length === 1) {
+          processedBlob = processedBlobs[0].blob;
+          showStatus('success', '✓ 文档属性已成功清除！点击下载按钮获取处理后的文件');
+          downloadBtn.style.display = 'inline-block';
+        } else {
+          showStatus('success', `✓ 已成功处理 ${selectedFiles.length} 个文件！点击下载按钮获取所有文件`);
+          downloadAllBtn.style.display = 'inline-block';
+        }
+        
         processBtn.style.display = 'none';
-        downloadBtn.style.display = 'inline-block';
         resetBtn.style.display = 'inline-block';
       } catch (error) {
         console.error('处理错误:', error);
@@ -365,13 +521,12 @@
       }
     });
     
-    // 下载按钮点击
+    // 下载单个文件按钮点击
     downloadBtn.addEventListener('click', () => {
-      if (!processedBlob) return;
+      if (!processedBlob || processedBlobs.length === 0) return;
       
-      const ext = selectedFile.name.split('.').pop();
-      const baseName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.'));
-      const fileName = `${baseName}_cleaned.${ext}`;
+      // 使用原文件名，不添加 _cleaned 后缀
+      const fileName = processedBlobs[0].name;
       
       const url = URL.createObjectURL(processedBlob);
       const a = document.createElement('a');
@@ -389,20 +544,58 @@
       showStatus('success', '✓ 文件已下载！');
     });
     
+    // 下载所有文件按钮点击
+    downloadAllBtn.addEventListener('click', async () => {
+      if (processedBlobs.length === 0) return;
+      
+      showStatus('info', '正在准备下载文件...');
+      
+      // 逐个下载文件，使用原文件名
+      for (let i = 0; i < processedBlobs.length; i++) {
+        const item = processedBlobs[i];
+        const url = URL.createObjectURL(item.blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = item.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // 延迟释放 URL
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 100);
+        
+        // 给浏览器一点时间处理下载
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      showStatus('success', `✓ 已下载 ${processedBlobs.length} 个文件！`);
+    });
+    
     // 重置按钮点击
     resetBtn.addEventListener('click', () => {
+      resetAll();
+    });
+    
+    function resetAll() {
       selectedFile = null;
+      selectedFiles = [];
       processedBlob = null;
+      processedBlobs = [];
       fileInput.value = '';
+      folderInput.value = '';
       fileInfo.classList.remove('show');
+      optionsInfo.style.display = 'none';
       processBtn.disabled = true;
       processBtn.style.display = 'inline-block';
       processBtn.innerHTML = '清除属性';
       downloadBtn.style.display = 'none';
+      downloadAllBtn.style.display = 'none';
       resetBtn.style.display = 'none';
       status.className = 'status';
       status.innerHTML = '';
-    });
+    }
     
     // 清除 Office 文档属性
     async function cleanOfficeDocument(file) {
