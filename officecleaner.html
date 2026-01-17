@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Office 文档属性清除 - 在线工具</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+    }
+    .tool-container {
+      text-align: center;
+      padding: 32px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .tool-container h1 {
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1d1d1f;
+      letter-spacing: -0.02em;
+    }
+    .tool-container .subtitle {
+      color: #86868b;
+      font-size: 19px;
+      margin-bottom: 40px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 980px;
+      color: #0071e3;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: #0071e3;
+      transform: scale(1.05);
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .upload-area {
+      border: 3px dashed #0071e3;
+      border-radius: 12px;
+      padding: 60px 20px;
+      margin: 24px 0;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(0, 113, 227, 0.05);
+    }
+    .upload-area:hover {
+      background: rgba(0, 113, 227, 0.1);
+      border-color: #005bb5;
+    }
+    .upload-area.dragover {
+      background: rgba(0, 113, 227, 0.15);
+      border-color: #005bb5;
+      transform: scale(1.02);
+    }
+    .upload-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .upload-text {
+      font-size: 18px;
+      color: #1d1d1f;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .upload-hint {
+      font-size: 14px;
+      color: #86868b;
+    }
+    #fileInput {
+      display: none;
+    }
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 980px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 8px;
+    }
+    .btn-primary {
+      background: #0071e3;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #005bb5;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,113,227,0.3);
+    }
+    .btn-primary:disabled {
+      background: #86868b;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: #f5f5f7;
+      color: #1d1d1f;
+    }
+    .btn-secondary:hover {
+      background: #e8e8ed;
+    }
+    .status {
+      margin: 24px 0;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      display: none;
+    }
+    .status.info {
+      background: rgba(0, 113, 227, 0.1);
+      color: #0071e3;
+      display: block;
+    }
+    .status.success {
+      background: rgba(52, 199, 89, 0.1);
+      color: #34c759;
+      display: block;
+    }
+    .status.error {
+      background: rgba(255, 59, 48, 0.1);
+      color: #ff3b30;
+      display: block;
+    }
+    .file-info {
+      text-align: left;
+      padding: 16px;
+      background: #f5f5f7;
+      border-radius: 12px;
+      margin: 24px 0;
+      display: none;
+    }
+    .file-info.show {
+      display: block;
+    }
+    .file-info-item {
+      margin: 8px 0;
+      color: #1d1d1f;
+    }
+    .file-info-label {
+      font-weight: 600;
+      color: #86868b;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .features {
+      text-align: left;
+      margin-top: 32px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    .features h3 {
+      color: #1d1d1f;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+    .features ul {
+      color: #86868b;
+      line-height: 1.8;
+    }
+    .features li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← 返回首页</a>
+  
+  <main class="container tool-container">
+    <h1>📄 Office 文档属性清除</h1>
+    <p class="subtitle">安全地清除 Office 文档中的作者、公司等敏感元数据信息</p>
+    
+    <div class="card">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📤</div>
+        <div class="upload-text">点击或拖拽文件到此处上传</div>
+        <div class="upload-hint">支持 .docx, .xlsx, .pptx 格式</div>
+      </div>
+      <input type="file" id="fileInput" accept=".docx,.xlsx,.pptx" />
+      
+      <div class="file-info" id="fileInfo">
+        <div class="file-info-item">
+          <span class="file-info-label">文件名：</span>
+          <span id="fileName"></span>
+        </div>
+        <div class="file-info-item">
+          <span class="file-info-label">文件大小：</span>
+          <span id="fileSize"></span>
+        </div>
+        <div class="file-info-item">
+          <span class="file-info-label">文件类型：</span>
+          <span id="fileType"></span>
+        </div>
+      </div>
+      
+      <div class="status" id="status"></div>
+      
+      <div>
+        <button class="btn btn-primary" id="processBtn" disabled>
+          清除属性
+        </button>
+        <button class="btn btn-primary" id="downloadBtn" style="display:none;">
+          下载清除后的文件
+        </button>
+        <button class="btn btn-secondary" id="resetBtn" style="display:none;">
+          重新上传
+        </button>
+      </div>
+      
+      <div class="features">
+        <h3>✨ 功能特点</h3>
+        <ul>
+          <li>🔒 完全本地处理，不上传到服务器，保护隐私</li>
+          <li>📝 支持 Word (.docx)、Excel (.xlsx)、PowerPoint (.pptx) 文档</li>
+          <li>🗑️ 清除核心属性：作者、标题、主题、关键词、备注等</li>
+          <li>🗑️ 清除扩展属性：公司、管理者、类别、应用程序等</li>
+          <li>⚡ 快速处理，即刻下载</li>
+          <li>🎯 保留文档内容和格式，仅删除元数据</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let selectedFile = null;
+    let processedBlob = null;
+    
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const status = document.getElementById('status');
+    const processBtn = document.getElementById('processBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    // 点击上传区域触发文件选择
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // 文件选择
+    fileInput.addEventListener('change', (e) => {
+      handleFile(e.target.files[0]);
+    });
+    
+    // 拖拽上传
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+    
+    // 处理文件
+    function handleFile(file) {
+      if (!file) return;
+      
+      // 验证文件类型
+      const fileName = file.name.toLowerCase();
+      const validExtensions = ['.docx', '.xlsx', '.pptx'];
+      const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!hasValidExtension) {
+        showStatus('error', '不支持的文件格式，请上传 .docx, .xlsx 或 .pptx 文件');
+        return;
+      }
+      
+      const ext = fileName.split('.').pop();
+      
+      selectedFile = file;
+      processedBlob = null;
+      
+      // 显示文件信息
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatFileSize(file.size);
+      document.getElementById('fileType').textContent = ext.toUpperCase();
+      fileInfo.classList.add('show');
+      
+      // 启用处理按钮
+      processBtn.disabled = false;
+      downloadBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+      showStatus('info', '文件已选择，点击"清除属性"开始处理');
+    }
+    
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+    
+    // 显示状态
+    function showStatus(type, message) {
+      status.className = 'status ' + type;
+      status.innerHTML = message;
+    }
+    
+    // 处理按钮点击
+    processBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      
+      processBtn.disabled = true;
+      processBtn.innerHTML = '<span class="spinner"></span>处理中...';
+      showStatus('info', '正在处理文档，请稍候...');
+      
+      try {
+        const cleanedBlob = await cleanOfficeDocument(selectedFile);
+        processedBlob = cleanedBlob;
+        
+        showStatus('success', '✓ 文档属性已成功清除！点击下载按钮获取处理后的文件');
+        processBtn.style.display = 'none';
+        downloadBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'inline-block';
+      } catch (error) {
+        console.error('处理错误:', error);
+        showStatus('error', '处理失败：' + error.message);
+        processBtn.disabled = false;
+        processBtn.innerHTML = '清除属性';
+      }
+    });
+    
+    // 下载按钮点击
+    downloadBtn.addEventListener('click', () => {
+      if (!processedBlob) return;
+      
+      const ext = selectedFile.name.split('.').pop();
+      const baseName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.'));
+      const fileName = `${baseName}_cleaned.${ext}`;
+      
+      const url = URL.createObjectURL(processedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Revoke URL after a delay to ensure download completes
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      showStatus('success', '✓ 文件已下载！');
+    });
+    
+    // 重置按钮点击
+    resetBtn.addEventListener('click', () => {
+      selectedFile = null;
+      processedBlob = null;
+      fileInput.value = '';
+      fileInfo.classList.remove('show');
+      processBtn.disabled = true;
+      processBtn.style.display = 'inline-block';
+      processBtn.innerHTML = '清除属性';
+      downloadBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+      status.className = 'status';
+      status.innerHTML = '';
+    });
+    
+    // 清除 Office 文档属性
+    async function cleanOfficeDocument(file) {
+      const zip = await JSZip.loadAsync(file);
+      
+      // 清除核心属性 (docProps/core.xml)
+      if (zip.files['docProps/core.xml']) {
+        const coreXml = await zip.files['docProps/core.xml'].async('string');
+        const cleanedCoreXml = cleanCoreProperties(coreXml);
+        zip.file('docProps/core.xml', cleanedCoreXml);
+      }
+      
+      // 清除扩展属性 (docProps/app.xml)
+      if (zip.files['docProps/app.xml']) {
+        const appXml = await zip.files['docProps/app.xml'].async('string');
+        const cleanedAppXml = cleanAppProperties(appXml);
+        zip.file('docProps/app.xml', cleanedAppXml);
+      }
+      
+      // 清除自定义属性 (docProps/custom.xml)
+      if (zip.files['docProps/custom.xml']) {
+        zip.remove('docProps/custom.xml');
+      }
+      
+      // 生成新的文件
+      const blob = await zip.generateAsync({ type: 'blob' });
+      return blob;
+    }
+    
+    // 清除核心属性
+    function cleanCoreProperties(xml) {
+      // 清除作者、标题、主题、关键词、描述、创建者、最后修改者等
+      const propertiesToClean = [
+        'dc:creator',
+        'dc:title',
+        'dc:subject',
+        'dc:description',
+        'cp:keywords',
+        'cp:lastModifiedBy',
+        'cp:revision',
+        'cp:category',
+        'cp:contentStatus'
+      ];
+      
+      let cleaned = xml;
+      propertiesToClean.forEach(prop => {
+        // Use dotall flag to match newlines, and escape special characters
+        const escapedProp = prop.replace(/:/g, '\\:');
+        // Match opening and closing tags with any content in between (non-greedy)
+        const regex = new RegExp(`<${escapedProp}[^>]*>[\\s\\S]*?<\\/${escapedProp}>`, 'g');
+        cleaned = cleaned.replace(regex, `<${prop}></${prop}>`);
+      });
+      
+      return cleaned;
+    }
+    
+    // 清除扩展属性
+    function cleanAppProperties(xml) {
+      // 清除应用程序、公司、管理者等
+      const propertiesToClean = [
+        'Application',
+        'AppVersion',
+        'Company',
+        'Manager',
+        'HyperlinkBase',
+        'Template'
+      ];
+      
+      let cleaned = xml;
+      propertiesToClean.forEach(prop => {
+        // Use dotall matching to handle multi-line content
+        const regex = new RegExp(`<${prop}[^>]*>[\\s\\S]*?<\\/${prop}>`, 'g');
+        cleaned = cleaned.replace(regex, `<${prop}></${prop}>`);
+      });
+      
+      return cleaned;
+    }
+  </script>
+</body>
+</html>
