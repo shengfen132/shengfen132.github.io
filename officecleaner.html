@@ -218,7 +218,7 @@
         <div class="upload-hint" id="uploadHint">支持 .docx, .xlsx, .pptx 格式</div>
       </div>
       <input type="file" id="fileInput" accept=".docx,.xlsx,.pptx" />
-      <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;" />
+      <input type="file" id="folderInput" webkitdirectory multiple style="display:none;" />
       
       <div class="file-info" id="fileInfo">
         <div class="file-info-item">
@@ -523,12 +523,13 @@
     
     // 下载单个文件按钮点击
     downloadBtn.addEventListener('click', () => {
-      if (!processedBlob || processedBlobs.length === 0) return;
+      if (processedBlobs.length === 0) return;
       
       // 使用原文件名，不添加 _cleaned 后缀
       const fileName = processedBlobs[0].name;
+      const blob = processedBlobs[0].blob;
       
-      const url = URL.createObjectURL(processedBlob);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
