@@ -301,11 +301,16 @@
       if (!file) return;
       
       // 验证文件类型
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (!['docx', 'xlsx', 'pptx'].includes(ext)) {
+      const fileName = file.name.toLowerCase();
+      const validExtensions = ['.docx', '.xlsx', '.pptx'];
+      const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!hasValidExtension) {
         showStatus('error', '不支持的文件格式，请上传 .docx, .xlsx 或 .pptx 文件');
         return;
       }
+      
+      const ext = fileName.split('.').pop();
       
       selectedFile = file;
       processedBlob = null;
@@ -375,7 +380,11 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      
+      // Revoke URL after a delay to ensure download completes
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
       
       showStatus('success', '✓ 文件已下载！');
     });
@@ -440,8 +449,10 @@
       
       let cleaned = xml;
       propertiesToClean.forEach(prop => {
-        // 匹配开标签和闭标签之间的内容，替换为空
-        const regex = new RegExp(`<${prop}[^>]*>.*?</${prop}>`, 'g');
+        // Use dotall flag to match newlines, and escape special characters
+        const escapedProp = prop.replace(/:/g, '\\:');
+        // Match opening and closing tags with any content in between (non-greedy)
+        const regex = new RegExp(`<${escapedProp}[^>]*>[\\s\\S]*?<\\/${escapedProp}>`, 'g');
         cleaned = cleaned.replace(regex, `<${prop}></${prop}>`);
       });
       
@@ -462,7 +473,8 @@
       
       let cleaned = xml;
       propertiesToClean.forEach(prop => {
-        const regex = new RegExp(`<${prop}[^>]*>.*?</${prop}>`, 'g');
+        // Use dotall matching to handle multi-line content
+        const regex = new RegExp(`<${prop}[^>]*>[\\s\\S]*?<\\/${prop}>`, 'g');
         cleaned = cleaned.replace(regex, `<${prop}></${prop}>`);
       });
       
